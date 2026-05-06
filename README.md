@@ -790,41 +790,4 @@ API 서버 (CPU 바운드)
 
 ```
 
-```bash
-#!/bin/bash
-
-set -e
-
-REGION="ap-northeast-2"
-DURATION_SECONDS=43200
-
-USERNAME=$(aws iam get-user --query 'User.UserName' --output text)
-ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
-MFA_SERIAL="arn:aws:iam::${ACCOUNT_ID}:mfa/${USERNAME}"
-
-echo "IAM User: ${USERNAME}"
-echo "MFA Device: ${MFA_SERIAL}"
-
-read -p "MFA Code: " MFA_CODE
-
-SESSION=$(aws sts get-session-token \
-  --serial-number "${MFA_SERIAL}" \
-  --token-code "${MFA_CODE}" \
-  --duration-seconds "${DURATION_SECONDS}" \
-  --region "${REGION}")
-
-export AWS_ACCESS_KEY_ID=$(echo "$SESSION" | jq -r '.Credentials.AccessKeyId')
-export AWS_SECRET_ACCESS_KEY=$(echo "$SESSION" | jq -r '.Credentials.SecretAccessKey')
-export AWS_SESSION_TOKEN=$(echo "$SESSION" | jq -r '.Credentials.SessionToken')
-export AWS_DEFAULT_REGION="${REGION}"
-
-echo "MFA session activated."
-aws sts get-caller-identity
-```
-
-```
-curl -O https://...
-chmod +x aws-mfa-login.sh
-source ./aws-mfa-login.sh
-```
 
